@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -13,7 +14,7 @@ namespace api.Controllers
         [HttpGet]
         public string GetStudents(string orderBy)
         {
-            return $"Kowalski, Majewski, Andrzejewski sortowanie ={orderBy}";
+            return $"Kowalski, Majewski, Andrzejewski sortowanie= {orderBy}";
         }
 
         [HttpGet("{id}")]
@@ -30,6 +31,12 @@ namespace api.Controllers
             return NotFound("Nie znaleziono studenta");
         }
 
+        [HttpPost]
+        public IActionResult CreateStudent(Student student)
+        {
+            student.IndexNumber = $"s{new Random().Next(1, 20000)}";
+            return Ok(student);
+        }
 
     }
 }
