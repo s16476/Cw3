@@ -31,7 +31,6 @@ namespace api.DAL
                 }
 
             }
-
             return _students;
         }
 
