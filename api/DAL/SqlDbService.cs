@@ -29,7 +29,6 @@ namespace api.DAL
                     student.IndexNumber = data["IndexNumber"].ToString();
                     _students.Add(student);
                 }
-
             }
             return _students;
         }
