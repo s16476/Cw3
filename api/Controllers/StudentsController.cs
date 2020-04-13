@@ -62,7 +62,5 @@ namespace api.Controllers
             return Ok("Usuwanie studenta o id " + id + " zakończone");
         }
 
-
-
     }
 }
