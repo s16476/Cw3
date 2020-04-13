@@ -11,13 +11,13 @@ namespace api.Controllers
     public class StudentsController : ControllerBase
     {
         [HttpGet]
-        public string GetStudent()
+        public string GetStudents(string orderBy)
         {
-            return "Kowalski, Majewski, Andrzejewski";
+            return $"Kowalski, Majewski, Andrzejewski sortowanie ={orderBy}";
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetStudent(int id)
+        public IActionResult GetStudents(int id)
         {
             if (id == 1)
             {
