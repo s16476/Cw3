@@ -15,5 +15,21 @@ namespace api.Controllers
         {
             return "Kowalski, Majewski, Andrzejewski";
         }
+
+        [HttpGet("{id}")]
+        public IActionResult GetStudent(int id)
+        {
+            if (id == 1)
+            {
+                return Ok("Kowalski");
+            } else if (id == 2)
+            {
+                return Ok("Majewski");
+            }
+
+            return NotFound("Nie znaleziono studenta");
+        }
+
+
     }
 }
