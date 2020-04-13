@@ -38,5 +38,21 @@ namespace api.Controllers
             return Ok(student);
         }
 
+        [HttpPut("{id}")]
+        public IActionResult UpdateStudent(int id, Student student)
+        {
+            //aktualizacja studenta o {id}
+            return Ok("Aktualizacja studenta o id " + id + " udana");
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult UpdateStudent(int id)
+        {
+            //usuwanie studenta o {id}
+            return Ok("Usuwanie studenta o id " + id + "zakończone");
+        }
+
+
+
     }
 }
