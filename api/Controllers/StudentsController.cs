@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.DAL;
 using api.models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,19 @@ namespace api.Controllers
     [Route("api/students")]
     public class StudentsController : ControllerBase
     {
-        [HttpGet]
-        public string GetStudents(string orderBy)
+
+        private readonly IDbService _dbService;
+
+        public StudentsController(IDbService dbService)
         {
-            return $"Kowalski, Majewski, Andrzejewski sortowanie= {orderBy}";
+            _dbService = dbService;
+        }
+
+        [HttpGet]
+        public IActionResult GetStudents(string orderBy)
+        {
+            //return $"Kowalski, Majewski, Andrzejewski sortowanie= {orderBy}";
+            return Ok(_dbService.GetStudents());
         }
 
         [HttpGet("{id}")]
@@ -49,7 +59,7 @@ namespace api.Controllers
         public IActionResult UpdateStudent(int id)
         {
             //usuwanie studenta o {id}
-            return Ok("Usuwanie studenta o id " + id + "zakończone");
+            return Ok("Usuwanie studenta o id " + id + " zakończone");
         }
 
 
