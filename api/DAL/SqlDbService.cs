@@ -42,7 +42,8 @@ namespace api.DAL
             using (var command = new SqlCommand())
             {
                 command.Connection = connection;
-                command.CommandText = "select e.* from Enrollment e join Student s on e.IdEnrollment = s.IdEnrollment where s.IndexNumber = '" + id + "'";
+                command.CommandText = "select e.* from Enrollment e join Student s on e.IdEnrollment = s.IdEnrollment where s.IndexNumber = @id";
+                command.Parameters.AddWithValue("id", id);
 
                 connection.Open();
                 var data = command.ExecuteReader();
