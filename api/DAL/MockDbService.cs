@@ -20,6 +20,11 @@ namespace api.DAL
             };
         }
 
+        public IEnumerable<Enrollment> GetEnrollmentsByStudentId(string id)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<Student> GetStudents()
         {
             return _students;

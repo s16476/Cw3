@@ -9,5 +9,7 @@ namespace api.DAL
     public interface IDbService
     {
         public IEnumerable<Student> GetStudents();
+
+        public IEnumerable<Enrollment> GetEnrollmentsByStudentId(string id);
     }
 }
