@@ -65,95 +65,106 @@ namespace api.DAL
         {
             if (!IsValidEnrollments(enrollments))
             {
-                throw new InvalidArgumentException();
-            } 
-
-            var connection = new SqlConnection("Data Source=localhost;Initial Catalog=apbd;Integrated Security=True");
-            var command = new SqlCommand();
-            command.Connection = connection;
-            var tran = connection.BeginTransaction();
-            
-
-            //Czy istnieje kierunek
-            command.CommandText = "select s from studies s where name = @studiesTitle";
-            command.Parameters.AddWithValue("studiesTitle", enrollments.Studies);
-            connection.Open();
-            var data = command.ExecuteReader();
-
-            var studies = new Studies();
-            if (data.Read())
-            {
-                studies.IdStudy = Convert.ToInt32(data["IdStudy"]);
-                studies.Name = data["Name"].ToString();
-            } else
-            {
-                throw new InvalidArgumentException();
+                throw new InvalidArgumentException("Brakujące dane wejściowe");
             }
-            command.Parameters.Clear();
+            formatDate(enrollments);
 
-
-            //Najświeższy semestr wybranego kierunku
-            command.CommandText = "select top 1 * from Enrollment where IdStudy = @studyId order by StartDate desc";
-            command.Parameters.AddWithValue("studyId", studies.IdStudy);
-            connection.Open();
-            data = command.ExecuteReader();
-
-            var enrollment = new Enrollment();
-            var enrollmentId = 0;
-            if (data.Read())
+            using (var connection = new SqlConnection("Data Source=localhost;Initial Catalog=apbd;Integrated Security=True"))
+            using (var command = new SqlCommand())
             {
-                enrollment.IdEnrollment = Convert.ToInt32(data["IdEnrollment"]);
-                enrollmentId = enrollment.IdEnrollment;
-                enrollment.IdStudy = Convert.ToInt32(data["IdStudy"]);
-                enrollment.Semester = Convert.ToInt32(data["Semester"]);
-                enrollment.StartDate = Convert.ToDateTime(data["StartDate"]);
-            }
-            else
-            //dodanie jeśli nie istnieje 
-            {
-                command.CommandText = "select top 1 * from Enrollment order by IdEnrollment desc";
                 connection.Open();
+                var tran = connection.BeginTransaction();
+                command.Connection = connection;
+                command.Transaction = tran;
 
-                data.Read();
-                enrollmentId = Convert.ToInt32(data["IdEnrollment"]) + 1;
 
-                command.CommandText = "insert into Enrollment values (@id, 1, @studyId, GETDATE())";
+
+                //Czy istnieje kierunek
+                command.CommandText = "select * from studies s where name = @studiesTitle";
+                command.Parameters.AddWithValue("studiesTitle", enrollments.Studies);
+                var data = command.ExecuteReader();
+
+                var studies = new Studies();
+                if (data.Read())
+                {
+                    studies.IdStudy = Convert.ToInt32(data["IdStudy"]);
+                    studies.Name = data["Name"].ToString();
+                }
+                else
+                {
+                    throw new InvalidArgumentException("Kierunek nie istnieje");
+                }
+                command.Parameters.Clear();
+                data.Close();
+                data.DisposeAsync();
+
+
+                //Najświeższy semestr wybranego kierunku
+                command.CommandText = "select top 1 * from Enrollment where IdStudy = @studyId order by StartDate desc";
                 command.Parameters.AddWithValue("studyId", studies.IdStudy);
-                command.Parameters.AddWithValue("id", enrollmentId);
-                connection.Open();
+                data = command.ExecuteReader();
+
+                var enrollment = new Enrollment();
+                var enrollmentId = 0;
+                if (data.Read())
+                {
+                    enrollment.IdEnrollment = Convert.ToInt32(data["IdEnrollment"]);
+                    enrollmentId = enrollment.IdEnrollment;
+                    enrollment.IdStudy = Convert.ToInt32(data["IdStudy"]);
+                    enrollment.Semester = Convert.ToInt32(data["Semester"]);
+                    enrollment.StartDate = Convert.ToDateTime(data["StartDate"]);
+                }
+                else
+                //dodanie jeśli nie istnieje 
+                {
+                    data.Close();
+                    data.DisposeAsync();
+
+                    command.CommandText = "select top 1 * from Enrollment order by IdEnrollment desc";
+                    data = command.ExecuteReader();
+
+                    data.Read();
+                    enrollmentId = Convert.ToInt32(data["IdEnrollment"]) + 1;
+
+                    command.CommandText = "insert into Enrollment values (@id, 1, @studyId, GETDATE())";
+                    command.Parameters.AddWithValue("studyId", studies.IdStudy);
+                    command.Parameters.AddWithValue("id", enrollmentId);
+                    connection.Open();
+                }
+                command.Parameters.Clear();
+
+                //Czy prawidłowy index
+                command.CommandText = "select * from Student where IndexNumber =  @index";
+                command.Parameters.AddWithValue("index", enrollments.IndexNumber);
+                data = command.ExecuteReader();
+                if (data.Read())
+                {
+                    throw new InvalidArgumentException("Index już istnieje");
+                }
+                command.Parameters.Clear();
+                data.Close();
+                data.DisposeAsync();
+
+                //Dodajemy studenta
+                command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment)";
+                command.Parameters.AddWithValue("index", enrollments.IndexNumber);
+                command.Parameters.AddWithValue("firstName", enrollments.FirstName);
+                command.Parameters.AddWithValue("lastName", enrollments.LastName);
+                command.Parameters.AddWithValue("birthDate", enrollments.BirthDate);
+                command.Parameters.AddWithValue("enrollment", enrollmentId);
+                data = command.ExecuteReader();
+                command.Parameters.Clear();
+                data.Close();
+                data.DisposeAsync();
+
+
+                tran.Commit();
+
+
+                return enrollment;
             }
-            command.Parameters.Clear();
 
-            //Czy prawidłowy index
-            command.CommandText = "select * from Student where IndexNumber =  @index";
-            command.Parameters.AddWithValue("index", enrollments.IndexNumber);
-            connection.Open();
-            data = command.ExecuteReader();
-            if (data.Read())
-            {
-                throw new InvalidArgumentException();
-            }
-            command.Parameters.Clear();
-
-            //Dodajemy studenta
-            command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment)";
-            command.Parameters.AddWithValue("index", enrollments.IndexNumber);
-            command.Parameters.AddWithValue("firstName", enrollments.FirstName);
-            command.Parameters.AddWithValue("lastName", enrollments.LastName);
-            command.Parameters.AddWithValue("birthDate", enrollments.BirthDate);
-            command.Parameters.AddWithValue("enrollment", enrollmentId);
-            connection.Open();
-            data = command.ExecuteReader();
-            command.Parameters.Clear();
-
-
-
-
-
-            tran.Commit();
-
-
-            return null;
+            
         }
 
 
@@ -163,11 +174,16 @@ namespace api.DAL
                 String.IsNullOrWhiteSpace(enrollments.FirstName) ||
                 String.IsNullOrWhiteSpace(enrollments.LastName) ||
                 String.IsNullOrWhiteSpace(enrollments.Studies) ||
-                enrollments.BirthDate == null)
+                String.IsNullOrWhiteSpace(enrollments.BirthDate))
             {
                 return false;
             }
             return true;
+        }
+
+        private void formatDate(StudentEnrollment enrollments)
+        {
+            enrollments.BirthDate = enrollments.BirthDate.Replace('.', '-');
         }
 
     }

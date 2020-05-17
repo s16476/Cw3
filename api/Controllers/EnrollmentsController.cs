@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using api.DAL;
 using api.models;
 using Microsoft.AspNetCore.Mvc;
@@ -21,14 +18,14 @@ namespace api.Controllers
         }
 
         [HttpPost()]
-        public IActionResult GetEnrollmentsByStudentId(StudentEnrollment enrollment)
+        public IActionResult EnrollStudentToStudies(StudentEnrollment enrollment)
         {
             try
             {
                 return Ok(_dbService.EnrollStudentToStudies(enrollment));
-            } catch (Exception)
+            } catch (Exception e)
             {
-                return BadRequest();
+                return BadRequest(e.Message);
             }
 
         }

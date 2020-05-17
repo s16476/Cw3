@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace api.DAL
 {
-    public class MockDbService : IDbService
+    public class MockDbService 
     {
         private static IEnumerable<Student> _students;
 
@@ -14,9 +14,9 @@ namespace api.DAL
         {
             _students = new List<Student>
             {
-                new Student{ IdStudent=1, FirstName="Jan", LastName="Kowalski"},
-                new Student{ IdStudent=2, FirstName="Anna", LastName="Majewski"},
-                new Student{ IdStudent=3, FirstName="Andrzej", LastName="Andrzejewicz"}
+                //new Student{ IdStudent=1, FirstName="Jan", LastName="Kowalski"},
+                //new Student{ IdStudent=2, FirstName="Anna", LastName="Majewski"},
+                //new Student{ IdStudent=3, FirstName="Andrzej", LastName="Andrzejewicz"}
             };
         }
 
