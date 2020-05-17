@@ -1,4 +1,5 @@
-﻿using api.models;
+﻿using api.exceptions;
+using api.models;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -59,5 +60,55 @@ namespace api.DAL
 
             return _enrollments;
         }
+
+        public Enrollment EnrollStudentToStudies(StudentEnrollment enrollments)
+        {
+            if (!IsValidEnrollments(enrollments))
+            {
+                throw new InvalidArgumentException();
+            } 
+
+            var connection = new SqlConnection("Data Source=localhost;Initial Catalog=apbd;Integrated Security=True");
+            var command = new SqlCommand();
+            command.Connection = connection;
+            var tran = connection.BeginTransaction();
+
+
+            
+            command.CommandText = "select count(s.IdStudy) from studies s where name = @studiesTitle";
+            command.Parameters.AddWithValue("studiesTitle", enrollments.Studies);
+            connection.Open();
+            var data = command.ExecuteReader();
+            var enrollment = 0;
+            while (data.Read())
+            {
+                enrollment = Convert.ToInt32(data[0]);
+            }
+            if (enrollment != 1)
+            {
+                throw new InvalidArgumentException();
+            }
+
+
+            tran.Commit();
+
+
+            return null;
+        }
+
+
+        private Boolean IsValidEnrollments(StudentEnrollment enrollments)
+        {
+            if (String.IsNullOrWhiteSpace(enrollments.IndexNumber) ||
+                String.IsNullOrWhiteSpace(enrollments.FirstName) ||
+                String.IsNullOrWhiteSpace(enrollments.LastName) ||
+                String.IsNullOrWhiteSpace(enrollments.Studies) ||
+                enrollments.BirthDate == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
     }
 }

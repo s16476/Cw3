@@ -11,5 +11,7 @@ namespace api.DAL
         public IEnumerable<Student> GetStudents();
 
         public IEnumerable<Enrollment> GetEnrollmentsByStudentId(string id);
+
+        public Enrollment EnrollStudentToStudies(StudentEnrollment enrollments);
     }
 }
