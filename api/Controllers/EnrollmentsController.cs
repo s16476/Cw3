@@ -1,5 +1,6 @@
 ﻿using System;
 using api.DAL;
+using api.DTOs;
 using api.models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,21 @@ namespace api.Controllers
             {
                 return Ok(_dbService.EnrollStudentToStudies(enrollment));
             } catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
+        }
+
+        [Route("promotions")]
+        [HttpPost]
+        public IActionResult PromoteStudents(StudentsPromotion promotion)
+        {
+            try
+            {
+                return Created("enrollments/promotions", _dbService.PromoteStudents(promotion));
+            }
+            catch (Exception e)
             {
                 return BadRequest(e.Message);
             }

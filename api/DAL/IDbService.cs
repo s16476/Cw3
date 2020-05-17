@@ -1,4 +1,5 @@
-﻿using api.models;
+﻿using api.DTOs;
+using api.models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,7 @@ namespace api.DAL
         public IEnumerable<Enrollment> GetEnrollmentsByStudentId(string id);
 
         public Enrollment EnrollStudentToStudies(StudentEnrollment enrollments);
+
+        public Enrollment PromoteStudents(StudentsPromotion promotion);
     }
 }
