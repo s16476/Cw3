@@ -34,6 +34,8 @@ namespace api.Middlewares
 
                 using (StreamWriter writetext = File.AppendText("requestsLog.txt"))
                 {
+
+                    writetext.WriteLine("TIME: " + DateTime.Now.ToString());
                     writetext.WriteLine("PATH: " + path);
                     writetext.WriteLine("METHOD: " + method);
                     writetext.WriteLine("QUERY: " + queryString);

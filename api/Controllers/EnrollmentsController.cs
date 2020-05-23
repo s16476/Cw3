@@ -2,12 +2,14 @@
 using api.DAL;
 using api.DTOs;
 using api.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
 {
     [ApiController]
     [Route("api/enrollments")]
+
     public class EnrollmentsController : ControllerBase
     {
 
@@ -19,6 +21,7 @@ namespace api.Controllers
         }
 
         [HttpPost()]
+        [Authorize(Roles = "employee")]
         public IActionResult EnrollStudentToStudies(StudentEnrollment enrollment)
         {
             try

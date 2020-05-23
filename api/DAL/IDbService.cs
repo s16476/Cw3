@@ -16,5 +16,7 @@ namespace api.DAL
         public Enrollment EnrollStudentToStudies(StudentEnrollment enrollments);
 
         public Enrollment PromoteStudents(StudentsPromotion promotion);
+
+        public Student FindStudentToLogin(string login, string password);
     }
 }

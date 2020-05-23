@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace api.models
 {
+
     public class StudentEnrollment
     {
         [Required]
@@ -22,6 +23,9 @@ namespace api.models
 
         [Required]
         public string Studies { get; set; }
+
+        [Required]
+        public string Password { get; set; }
 
     }
 }

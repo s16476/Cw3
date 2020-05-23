@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using api.DAL;
 using api.models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 
 namespace api.Controllers
 {
@@ -14,6 +19,7 @@ namespace api.Controllers
     {
 
         private readonly IDbService _dbService;
+
 
         public StudentsController(IDbService dbService)
         {
@@ -61,6 +67,8 @@ namespace api.Controllers
             //usuwanie studenta o {id}
             return Ok("Usuwanie studenta o id " + id + " zakończone");
         }
+
+
 
     }
 }

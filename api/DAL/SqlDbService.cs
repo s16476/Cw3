@@ -180,6 +180,7 @@ namespace api.DAL
                     {
                         if (data4.Read())
                         {
+                            data4.Close();
                             tran.Rollback();
                             throw new InvalidArgumentException("Index już istnieje");
                         }
@@ -191,12 +192,18 @@ namespace api.DAL
                 {
                     command.Connection = connection;
                     command.Transaction = tran;
-                    command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment)";
+                    command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment, @password)";
                     command.Parameters.AddWithValue("index", enrollments.IndexNumber);
                     command.Parameters.AddWithValue("firstName", enrollments.FirstName);
                     command.Parameters.AddWithValue("lastName", enrollments.LastName);
                     command.Parameters.AddWithValue("birthDate", enrollments.BirthDate);
                     command.Parameters.AddWithValue("enrollment", enrollmentId);
+
+                    byte[] data = System.Text.Encoding.UTF8.GetBytes(enrollments.Password);
+                    data = new System.Security.Cryptography.SHA256Managed().ComputeHash(data);
+                    String hash = System.Text.Encoding.UTF8.GetString(data);
+                    command.Parameters.AddWithValue("password", hash);
+
                     command.ExecuteNonQuery();
                 }
 
@@ -246,6 +253,36 @@ namespace api.DAL
                 }
             }
             return enrollment;
+        }
+
+        public Student FindStudentToLogin(string login, string password)
+        {
+
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
+            bytes = new System.Security.Cryptography.SHA256Managed().ComputeHash(bytes);
+            String hash = System.Text.Encoding.UTF8.GetString(bytes);
+
+            var student = new Student();
+
+            using (var connection = new SqlConnection("Data Source=localhost;Initial Catalog=apbd;Integrated Security=True"))
+            using (var command = new SqlCommand())
+            {
+                command.Connection = connection;
+                command.CommandText = "select s.* from Student s where s.IndexNumber = @login and s.password = @password";
+                command.Parameters.AddWithValue("login", login);
+                command.Parameters.AddWithValue("password", hash);
+
+                connection.Open();
+                var data = command.ExecuteReader();
+                if (data.Read())
+                {
+                    student.FirstName = data["FirstName"].ToString();
+                    student.LastName = data["LastName"].ToString();
+                    student.IndexNumber = data["IndexNumber"].ToString();
+                }
+            }
+
+            return student;
         }
 
     }

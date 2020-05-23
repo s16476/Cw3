@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using api.DAL;
 using api.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace api
 {
@@ -29,6 +32,19 @@ namespace api
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<IDbService, SqlDbService>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "Gakko",
+                        ValidateAudience = true,
+                        ValidAudience = "students",
+                        ValidateLifetime = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["SecretKey"]))
+                    };
+                });
             //services.AddSingleton<IDbService, MockDbService>();
             services.AddControllers();
         }
@@ -44,19 +60,10 @@ namespace api
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggingMiddleware>();
-            app.Use(async (context, next) => 
-            {
-                if (!context.Request.Headers.ContainsKey("Index"))
-                {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    await context.Response.WriteAsync("Wymagany index");
-                    return;
-                }
-
-                await next();
-            });
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
