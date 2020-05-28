@@ -260,7 +260,7 @@ namespace api.DAL
 
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
             bytes = new System.Security.Cryptography.SHA256Managed().ComputeHash(bytes);
-            String hash = System.Text.Encoding.UTF8.GetString(bytes);
+            String hashedPassword = System.Text.Encoding.UTF8.GetString(bytes);
 
             var student = new Student();
 
@@ -270,7 +270,7 @@ namespace api.DAL
                 command.Connection = connection;
                 command.CommandText = "select s.* from Student s where s.IndexNumber = @login and s.password = @password";
                 command.Parameters.AddWithValue("login", login);
-                command.Parameters.AddWithValue("password", hash);
+                command.Parameters.AddWithValue("password", hashedPassword);
 
                 connection.Open();
                 var data = command.ExecuteReader();
