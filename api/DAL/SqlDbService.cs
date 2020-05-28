@@ -1,10 +1,15 @@
 ﻿using api.DTOs;
 using api.exceptions;
 using api.models;
+using api.Services;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace api.DAL
 {
@@ -192,17 +197,16 @@ namespace api.DAL
                 {
                     command.Connection = connection;
                     command.Transaction = tran;
-                    command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment, @password)";
+                    command.CommandText = "insert into Student values (@index, @firstName, @lastName, @birthDate, @enrollment, @password, @salt)";
                     command.Parameters.AddWithValue("index", enrollments.IndexNumber);
                     command.Parameters.AddWithValue("firstName", enrollments.FirstName);
                     command.Parameters.AddWithValue("lastName", enrollments.LastName);
                     command.Parameters.AddWithValue("birthDate", enrollments.BirthDate);
                     command.Parameters.AddWithValue("enrollment", enrollmentId);
 
-                    byte[] data = System.Text.Encoding.UTF8.GetBytes(enrollments.Password);
-                    data = new System.Security.Cryptography.SHA256Managed().ComputeHash(data);
-                    String hash = System.Text.Encoding.UTF8.GetString(data);
-                    command.Parameters.AddWithValue("password", hash);
+                    var salt = PasswordService.CreateSalt();
+                    command.Parameters.AddWithValue("salt", salt);
+                    command.Parameters.AddWithValue("password", PasswordService.Create(enrollments.Password, salt));
 
                     command.ExecuteNonQuery();
                 }
@@ -258,19 +262,14 @@ namespace api.DAL
         public Student FindStudentToLogin(string login, string password)
         {
 
-            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(password);
-            bytes = new System.Security.Cryptography.SHA256Managed().ComputeHash(bytes);
-            String hashedPassword = System.Text.Encoding.UTF8.GetString(bytes);
-
             var student = new Student();
 
             using (var connection = new SqlConnection("Data Source=localhost;Initial Catalog=apbd;Integrated Security=True"))
             using (var command = new SqlCommand())
             {
                 command.Connection = connection;
-                command.CommandText = "select s.* from Student s where s.IndexNumber = @login and s.password = @password";
+                command.CommandText = "select s.* from Student s where s.IndexNumber = @login";
                 command.Parameters.AddWithValue("login", login);
-                command.Parameters.AddWithValue("password", hashedPassword);
 
                 connection.Open();
                 var data = command.ExecuteReader();
@@ -279,10 +278,22 @@ namespace api.DAL
                     student.FirstName = data["FirstName"].ToString();
                     student.LastName = data["LastName"].ToString();
                     student.IndexNumber = data["IndexNumber"].ToString();
+                    student.Salt = data["Salt"].ToString();
+                    student.Password = data["Password"].ToString();
+                } else
+                {
+                    throw new AuthenticationException("Nie można zalogowac użytkownika");
                 }
             }
 
-            return student;
+            if (PasswordService.Validate(password,student.Salt, student.Password))
+            {
+                return student;
+            } else
+            {
+                throw new AuthenticationException("Nie można zalogowac użytkownika");
+            }
+            
         }
 
     }
